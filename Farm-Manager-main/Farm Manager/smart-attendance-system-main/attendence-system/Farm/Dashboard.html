@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Labor Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            margin: 15px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #007bff;
+            color: #ffffff;
+            text-align: center;
+        }
+        .metric {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .metric-title {
+            font-size: 14px;
+            text-align: center;
+            color: #888;
+        }
+        .icon {
+            font-size: 36px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">Farm Labor Dashboard</h1>
+        <div class="row text-center">
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="icon">👩‍🌾</div>
+                        <div class="metric">200</div>
+                        <div class="metric-title">Total Workers</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="icon">🌾</div>
+                        <div class="metric">150</div>
+                        <div class="metric-title">Fields Managed</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="icon">🕒</div>
+                        <div class="metric">80%</div>
+                        <div class="metric-title">Efficiency</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="icon">🌱</div>
+                        <div class="metric">3000</div>
+                        <div class="metric-title">Crops Harvested</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="icon">🔧</div>
+                        <div class="metric">120</div>
+                        <div class="metric-title">Tools Used</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="icon">👥</div>
+                        <div class="metric">50</div>
+                        <div class="metric-title">Teams</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row my-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Monthly Work Hours
+                    </div>
+                    <div class="card-body">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Work Hours by Field
+                    </div>
+                    <div class="card-body">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row my-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Work Distribution
+                    </div>
+                    <div class="card-body">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Productivity Comparison
+                    </div>
+                    <div class="card-body">
+                        <canvas id="doughnutChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var options = {
+                responsive: true,
+                tooltips: {
+                    mode: 'index',
+                    intersect: false
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                }
+            };
+
+            // Line Chart
+            var ctxLine = document.getElementById('lineChart').getContext('2d');
+            var lineChart = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+                    datasets: [{
+                        label: 'Work Hours (hrs)',
+                        data: [150, 180, 220, 200, 170, 160, 190],
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: options
+            });
+
+            // Bar Chart
+            var ctxBar = document.getElementById('barChart').getContext('2d');
+            var barChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Field A', 'Field B', 'Field C', 'Field D', 'Field E'],
+                    datasets: [{
+                        label: 'Work Hours (hrs)',
+                        data: [120, 150, 90, 100, 80],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: options
+            });
+
+            // Pie Chart
+            var ctxPie = document.getElementById('pieChart').getContext('2d');
+            var pieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Field A', 'Field B', 'Field C', 'Field D', 'Field E'],
+                    datasets: [{
+                        label: 'Work Hours (hrs)',
+                        data: [120, 150, 90, 100, 80],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: options
+            });
+
+            // Doughnut Chart
+            var ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+            var doughnutChart = new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Field A', 'Field B', 'Field C', 'Field D', 'Field E'],
+                    datasets: [{
+                        label: 'Work Hours (hrs)',
+                        data: [120, 150, 90, 100, 80],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: options
+            });
+        });
+    </script>
+</body>
+</html>
