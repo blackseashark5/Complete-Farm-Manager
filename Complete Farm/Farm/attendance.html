@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ATTENDANCE SYSTEM</title>
+    <meta charset="UTF-8">
+    <script src="https://www.gstatic.com/firebasejs/5.5.5/firebase.js"></script>
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCuA6poN9k-AUZXxgLGs_pm8FOXbzkZH1g",
+            authDomain: "rfidattendance-c6ac1.firebaseapp.com",
+            databaseURL: "https://rfidattendance-c6ac1-default-rtdb.firebaseio.com",
+            projectId: "rfidattendance-c6ac1",
+            storageBucket: "rfidattendance-c6ac1.appspot.com",
+            messagingSenderId: "291958559206",
+            appId: "1:291958559206:web:11d42b02c5c8a49c4c4627"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <link href="style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" rel="stylesheet"/>
+    <link href="https://cdn.datatables.net/responsive/2.2.6/css/responsive.dataTables.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="heading">
+    <h1>ATTENDANCE SYSTEM</h1>
+</div>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <i class="fa fa-table mr-1"></i> Attendance Summary
+        </div>
+        <div class="card-body">
+            <button type="button" class="btn btn-primary" id="export">
+                <i class="fa fa-download" aria-hidden="true"></i> Export CSV
+            </button>
+            <div class="table-responsive">
+                <table class="table table-bordered display responsive nowrap" id="buttonTable" width="100%" cellspacing="0" data-order="[]">
+                    <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Device Id</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for updating device information -->
+    <div class="modal fade" id="updateDeviceModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateDeviceModalLabel">Update Device</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Device update form -->
+                    <div class="form-group">
+                        <label for="cardId">Select Card ID:</label>
+                        <select class="form-control" id="cardId"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="newName">New Name:</label>
+                        <input type="text" class="form-control" id="newName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="updateDevice">Update Device</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript libraries -->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.6/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.flash.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.html5.min.js"></script>
+
+    <!-- Your JavaScript code -->
+    <script>
+        $(function() {
+            document.getElementById("export").onclick = function() { exportCSV() };
+
+            function exportCSV() {
+                $('#buttonTable').DataTable().button(0).trigger();
+            }
+
+            var button_table = $('#buttonTable').DataTable({
+                "ordering": false,
+                "paging": false,
+                buttons: [
+                    {
+                        extend: 'csv',
+                        filename: 'attendance_summary',
+                        extension: '.csv'
+                    }
+                ],
+                initComplete: function() {
+                    $('.buttons-csv').hide();
+                }
+            });
+
+            // Function to fetch the current date from an online source
+            function getCurrentDate() {
+                var currentDate;
+                $.ajax({
+                    url: "https://worldtimeapi.org/api/timezone/UTC",
+                    method: "GET",
+                    async: false,
+                    success: function(data) {
+                        currentDate = data.datetime.split("T")[0];
+                    }
+                });
+                return currentDate;
+            }
+
+            // Populate the dropdown with existing card IDs from Firebase
+            var cardIdDropdown = $('#cardId');
+            firebase.database().ref('/users').once('value', function(snapshot) {
+                snapshot.forEach(function(childSnapshot) {
+                    var cardId = childSnapshot.key;
+                    var option = document.createElement("option");
+                    option.text = cardId;
+                    cardIdDropdown.append(option);
+                });
+            });
+
+            // Update Device Name and ID when the modal button is clicked
+            $('#updateDevice').click(function() {
+                var selectedCardId = cardIdDropdown.val();
+                var newName = $('#newName').val();
+
+                if (selectedCardId && newName) {
+                    // Update the name and device ID in Firebase
+                    firebase.database().ref('/users/' + selectedCardId).update({
+                        name: newName
+                    });
+                    alert('Device information updated successfully.');
+                    $('#updateDeviceModal').modal('hide');
+                } else {
+                    alert('Please select a Card ID and enter a New Name.');
+                }
+            });
+
+            // Fetch attendance data from Firebase and display it in the table
+            firebase.database().ref('/attendance').on('value', function(snapshot) {
+                if (snapshot.exists()) {
+                    button_table.clear().draw();
+                    snapshot.forEach(function(childSnapshot) {
+                        var data = childSnapshot.val();
+                        var timeFromFirebase = data.time;
+                        var currentDate = getCurrentDate();
+                        var dateTime = currentDate + " " + timeFromFirebase;
+
+                        var row = `<tr>
+                            <td>${data.uid}</td>
+                            <td>${data.id}</td>
+                            <td>${dateTime}</td>
+                            <td><span class="badge badge-${data.status ? 'success' : 'danger'}">${data.status ? 'Check In' : 'Check Out'}</span></td>
+                        </tr>`;
+                        button_table.rows.add($(row)).draw();
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
