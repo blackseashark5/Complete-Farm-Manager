@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Labour Attendance System</title>
+    <meta charset="UTF-8">
+    <script src="https://www.gstatic.com/firebasejs/5.5.5/firebase.js"></script>
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCuA6poN9k-AUZXxgLGs_pm8FOXbzkZH1g",
+            authDomain: "rfidattendance-c6ac1.firebaseapp.com",
+            databaseURL: "https://rfidattendance-c6ac1-default-rtdb.firebaseio.com",
+            projectId: "rfidattendance-c6ac1",
+            storageBucket: "rfidattendance-c6ac1.appspot.com",
+            messagingSenderId: "291958559206",
+            appId: "1:291958559206:web:11d42b02c5c8a49c4c4627"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <link href="style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" rel="stylesheet"/>
+    <link href="https://cdn.datatables.net/responsive/2.2.6/css/responsive.dataTables.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="heading">
+    <h1>Labour Attendance System</h1>
+</div>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <i class="fa fa-table mr-1"></i> Labour Attendance Summary
+        </div>
+        <div class="card-body">
+            <button type="button" class="btn btn-primary" id="addRow">
+                <i class="fa fa-plus" aria-hidden="true"></i> Add Row
+            </button>
+            
+            <button type="button" class="btn btn-primary" id="exportCSV">
+                <i class="fa fa-download" aria-hidden="true"></i> Export CSV
+            </button>
+            <input type="file" id="csvFileInput" style="display:none;">
+            <div class="table-responsive">
+                <table class="table table-bordered display responsive nowrap" id="attendanceTable" width="100%" cellspacing="0" data-order="[]">
+                    <thead>
+                    <tr>
+                        <th>Labour Name</th>
+                        <th>Labour Skill</th>
+                        <th>Hours Worked</th>
+                        <th>Performance Rating</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td><input type="text" class="form-control" placeholder="Labour Name"></td>
+                        <td><input type="text" class="form-control" placeholder="Labour Skill"></td>
+                        <td><input type="number" class="form-control" placeholder="Hours Worked"></td>
+                        <td><input type="text" class="form-control" placeholder="Performance Rating"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript libraries -->
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.6/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.flash.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.html5.min.js"></script>
+
+    <!-- Your JavaScript code -->
+    <script>
+        $(function() {
+            var attendanceTable = $('#attendanceTable').DataTable({
+                "ordering": false,
+                "paging": false
+            });
+
+            // Add Row functionality
+            $('#addRow').click(function() {
+                attendanceTable.row.add([
+                    '<input type="text" class="form-control" placeholder="Labour Name">',
+                    '<input type="text" class="form-control" placeholder="Labour Skill">',
+                    '<input type="number" class="form-control" placeholder="Hours Worked">',
+                    '<input type="text" class="form-control" placeholder="Performance Rating">'
+                ]).draw();
+            });
+
+            // Export CSV functionality
+            $('#exportCSV').click(function() {
+                var csv = [];
+                var rows = attendanceTable.rows().nodes();
+
+                // Loop through table rows and collect the data
+                $(rows).each(function() {
+                    var row = [];
+                    $(this).find('input').each(function() {
+                        row.push($(this).val());
+                    });
+                    csv.push(row.join(','));
+                });
+
+                // Create a CSV file and download it
+                var csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+                var downloadLink = document.createElement('a');
+                downloadLink.download = 'labour_attendance.csv';
+                downloadLink.href = window.URL.createObjectURL(csvFile);
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+            });
+
+            // Import CSV functionality
+            $('#importCSV').click(function() {
+                $('#csvFileInput').click();
+            });
+
+            $('#csvFileInput').change(function(e) {
+                var file = e.target.files[0];
+                var reader = new FileReader();
+
+                reader.onload = function(event) {
+                    var rows = event.target.result.split('\n');
+                    rows.forEach(function(row) {
+                        var cols = row.split(',');
+
+                        if (cols.length === 4) {
+                            attendanceTable.row.add([
+                                `<input type="text" class="form-control" value="${cols[0]}">`,
+                                `<input type="text" class="form-control" value="${cols[1]}">`,
+                                `<input type="number" class="form-control" value="${cols[2]}">`,
+                                `<input type="text" class="form-control" value="${cols[3]}">`
+                            ]).draw();
+                        }
+                    });
+                };
+
+                reader.readAsText(file);
+            });
+        });
+    </script>
+</body>
+</html>
